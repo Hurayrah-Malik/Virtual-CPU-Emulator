@@ -2,6 +2,9 @@
 
 # ===== CPU STATE =====
 registers = [0, 0, 0, 0]  # R0, R1, R2, R3
+
+# create a memory
+memory = [0] * 256
 pc = 0  # Program Counter - tracks which instruction to execute next
 
 
@@ -14,6 +17,15 @@ def load(r_dest, value):
 def add(r_dest, r_src1, r_src2):
     """Add two registers and store result in destination"""
     registers[r_dest] = registers[r_src1] + registers[r_src2]
+
+
+# === memory instructions ===
+def store(r_src, mem_dest):
+    memory[mem_dest] = registers[r_src]
+
+
+def load_mem(r_dest, mem_src):
+    registers[r_dest] = memory[mem_src]
 
 
 # ===== PROGRAM =====
@@ -41,6 +53,14 @@ while pc < len(program):
         r_src1_add = instruction[2]
         r_src2_add = instruction[3]
         add(r_dest_add, r_src1_add, r_src2_add)
+
+    elif opcode == "STORE":
+        r_src_store = instruction[1]
+        memory_dest_store = instruction[2]
+        store(r_src_store, memory_dest_store)
+
+    # elif opcode == "LOAD_MEM":
+    #     r_dest_loadmem =
 
     pc += 1  # Move to next instruction
 
