@@ -36,7 +36,7 @@ program = [
 ]
 
 
-# ===== FETCH-DECODE-EXECUTE LOOP =====
+# ===== FETCH-DECODE-EXECUTE LOOP ======
 while pc < len(program):
     instruction = program[pc]  # FETCH
 
