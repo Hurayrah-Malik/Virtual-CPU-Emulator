@@ -1,4 +1,4 @@
-# cpu.py - Our Virtual CPU
+# cpu.py - Our Virtual CPU!
 
 # ===== CPU STATE =====
 registers = [0, 0, 0, 0]  # R0, R1, R2, R3
