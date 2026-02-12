@@ -32,7 +32,7 @@ def load_mem(r_dest, mem_src):
 program = [
     ("LOAD", 0, 5),  # Load 5 into R0
     ("LOAD", 1, 3),  # Load 3 into R1
-    ("ADD", 2, 0, 1),  # Add R0 + R1, store in R2
+    ("ADD", 2, 0, 1),  # Add R0 + R1, store in the R2 register
 ]
 
 
