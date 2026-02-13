@@ -1,3 +1,5 @@
+# start flag
+
 # cpu.py - Our Virtual CPU!
 
 # Opcode definitions (at the top of your file)
@@ -8,6 +10,21 @@
 # MUL = 4
 # STORE = 5
 # LOAD_MEM = 6
+
+# dictionary of the opcodes
+assembly_dict = {
+    "HALT": 0,
+    "LOAD": 1,
+    "ADD": 2,
+    "SUB": 3,
+    "MUL": 4,
+    "STORE": 5,
+    "LOAD_MEM": 6,
+    "R0": 0,
+    "R1": 1,
+    "R2": 2,
+    "R3": 3,
+}
 
 
 # ===== CPU STATE =====
@@ -46,70 +63,79 @@ def load_mem(r_dest, mem_src):
     registers[r_dest] = memory[mem_src]
 
 
-# ===== PROGRAM =====
-program = [
-    (1, 0, 10),      # LOAD R0, 10      → [10, 0, 0, 0]
-    (1, 1, 3),       # LOAD R1, 3       → [10, 3, 0, 0]
-    (2, 2, 0, 1),    # ADD R2, R0, R1   → [10, 3, 13, 0]  (10 + 3 = 13)
-    (3, 3, 0, 1),    # SUB R3, R0, R1   → [10, 3, 13, 7]  (10 - 3 = 7)
-    (4, 2, 1, 3),    # MUL R2, R1, R3   → [10, 3, 21, 7]  (3 * 7 = 21)
-    (5, 2, 50),      # STORE R2, [50]   → [10, 3, 21, 7]  MEM[50] = 21
-    (6, 0, 50),      # LOAD_MEM R0, [50]→ [21, 3, 21, 7]  R0 = MEM[50]
-    (0,),            # HALT             → Stop!
-]
+# convert the human readable assembly to machine code
+def assembler(input: str) -> list:
+    # make every line a list item
+    input_list = input.strip().split("\n")
 
+    fully_split_input = []
+    # make every line , into a list
+    for line in input_list:
+        fully_split_input.append(line.split())
+
+    # for every list of instructions inside of the list, change the opcode to a number
+    for line in fully_split_input:
+        for i in range(len(line)):
+            if line[i] in assembly_dict:
+                line[i] = assembly_dict[line[i]]
+            else:
+                line[i] = int(line[i])
+
+    return fully_split_input
+
+
+# ===== ASSEMBLE AND RUN PROGRAM =====
+assembly_code = """
+LOAD R0 10
+LOAD R1 3
+ADD R2 R0 R1
+SUB R3 R0 R1
+MUL R2 R1 R3
+STORE R2 50
+LOAD_MEM R0 50
+HALT
+"""
+
+program = assembler(assembly_code)
+print("Assembled program:", program)
+print("\nRunning CPU:\n")
 
 # ===== FETCH-DECODE-EXECUTE LOOP ======
 while pc < len(program):
     instruction = program[pc]  # FETCH
 
     # DECODE and EXECUTE
-    opcode = instruction[0]  # First element is the instruction name
+    opcode = instruction[0]
 
     # Opcode 1: LOAD
     if opcode == 1:
-        r_dest_load = instruction[1]
-        value_load = instruction[2]
-        load(r_dest_load, value_load)
+        load(instruction[1], instruction[2])
 
     # Opcode 2: ADD
     elif opcode == 2:
-        r_dest_add = instruction[1]
-        r_src1_add = instruction[2]
-        r_src2_add = instruction[3]
-        add(r_dest_add, r_src1_add, r_src2_add)
+        add(instruction[1], instruction[2], instruction[3])
 
     # Opcode 3: SUB
     elif opcode == 3:
-        r_dest_sub = instruction[1]
-        r_src1_sub = instruction[2]
-        r_src2_sub = instruction[3]
-        sub(r_dest_sub, r_src1_sub, r_src2_sub)
+        sub(instruction[1], instruction[2], instruction[3])
 
     # Opcode 4: MUL
     elif opcode == 4:
-        r_dest_mul = instruction[1]
-        r_src1_mul = instruction[2]
-        r_src2_mul = instruction[3]
-        mul(r_dest_mul, r_src1_mul, r_src2_mul)
+        mul(instruction[1], instruction[2], instruction[3])
 
     # Opcode 5: STORE
     elif opcode == 5:
-        r_src_store = instruction[1]
-        memory_dest_store = instruction[2]
-        store_mem(r_src_store, memory_dest_store)
+        store_mem(instruction[1], instruction[2])
 
     # Opcode 6: LOAD_MEM
     elif opcode == 6:
-        r_dest_load_memory = instruction[1]
-        memory_src_load = instruction[2]
-        load_mem(r_dest_load_memory, memory_src_load)
+        load_mem(instruction[1], instruction[2])
 
     # Opcode 0: HALT
     elif opcode == 0:
         break
 
     pc += 1  # Move to next instruction
+    print(registers)  # Print after each instruction
 
-    # print registers every iteration
-    print(registers)
+# end flag
