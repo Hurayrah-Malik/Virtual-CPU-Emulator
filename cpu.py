@@ -32,7 +32,7 @@ registers = [0, 0, 0, 0]  # R0, R1, R2, R3
 
 # create a memory
 memory = [0] * 256
-pc = 0  # Program Counter - tracks which instruction to execute next
+pc = 0  # Program Counter - trackss which instruction to execute next
 
 
 # ===== INSTRUCTIONS =====
