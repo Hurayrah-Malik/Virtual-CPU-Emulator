@@ -12,6 +12,7 @@
 # LOAD_MEM = 6
 # JUMP = 7
 
+# ===== OPCODE AND REGISTER DEFINITIONS =====
 # dictionary of the opcodes
 assembly_dict = {
     "HALT": 0,
@@ -25,6 +26,8 @@ assembly_dict = {
     "JNZ": 8,
     "PUSH": 9,
     "POP": 10,
+    "CALL": 11,
+    "RET": 12,
     "R0": 0,
     "R1": 1,
     "R2": 2,
@@ -34,17 +37,14 @@ assembly_dict = {
 
 # ===== CPU STATE =====
 registers = [0, 0, 0, 0]  # R0, R1, R2, R3
-
 # create a memory
 memory = [0] * 256
 # stack pointer that starts at the end of memory, becasue the stack is stored at the end of memory
 stack_pointer = 255
-
-
 pc = 0  # Program Counter - trackss which instruction to execute next
 
 
-# ===== INSTRUCTIONS =====
+# ===== BASIC ARITHMETIC INSTRUCTIONS =====
 def load(r_dest, value):
     """Put a value into a register"""
     registers[r_dest] = value
@@ -63,6 +63,17 @@ def mul(r_dest, r_src1, r_src2):
     registers[r_dest] = registers[r_src1] * registers[r_src2]
 
 
+# ===== MEMORY INSTRUCTIONS =====
+# === memory instructions ===
+def store_mem(r_src, mem_dest):
+    memory[mem_dest] = registers[r_src]
+
+
+def load_mem(r_dest, mem_src):
+    registers[r_dest] = memory[mem_src]
+
+
+# ===== CONTROL FLOW INSTRUCTIONS =====
 # jump to a given line
 def jump(target_line: int):
     # tell python to modify the global pc
@@ -77,19 +88,18 @@ def JNZ(register_num, line):
         jump(line)
 
 
-# === memory instructions ===
-def store_mem(r_src, mem_dest):
-    memory[mem_dest] = registers[r_src]
-
-
-def load_mem(r_dest, mem_src):
-    registers[r_dest] = memory[mem_src]
-
-
+# ===== STACK INSTRUCTIONS =====
 # push a given register value onto the stack
-def push(r_src):
+def push_reg(r_src):
     global stack_pointer
     memory[stack_pointer] = registers[r_src]
+    stack_pointer -= 1
+
+
+# push an integer onto the stack(instead of a register's value)
+def push_imm(value: int):
+    global stack_pointer
+    memory[stack_pointer] = value
     stack_pointer -= 1
 
 
@@ -100,6 +110,31 @@ def pop(r_dest):
     registers[r_dest] = memory[stack_pointer]
 
 
+# ===== FUNCTION CALL INSTRUCTIONS  =====
+
+
+# call a function (jump to a line, and remember which line to go back to)
+def call(line_num: int):
+    global pc
+    # store next line number in register 0
+    load(1, 1)
+    load(0, pc)
+    add(0, 0, 1)
+    # push the next line number on the stack
+    push_reg(0)
+
+    jump(line_num)
+
+
+# return to the line where the function was called from
+def ret():
+    # get the line to go to in register 0
+    pop(0)
+    # jump to the line in that register
+    jump(registers[0])
+
+
+# ===== ASSEMBLER =====
 # convert the human readable assembly to machine code
 def assembler(input: str) -> list:
     # make every line a list item
@@ -124,15 +159,12 @@ def assembler(input: str) -> list:
 # ===== ASSEMBLE AND RUN PROGRAM =====
 
 assembly_code = """
-LOAD R0 42
-LOAD R1 99
-PUSH R0
-PUSH R1
-LOAD R0 0
-LOAD R1 0
-POP R1
-POP R0
+LOAD R2 10
+CALL 3
 HALT
+LOAD R3 5
+ADD R2 R2 R3
+RET
 """
 
 program = assembler(assembly_code)
@@ -183,11 +215,19 @@ while pc < len(program):
         JNZ(instruction[1], instruction[2])
     # opcode 9: PUSH
     elif opcode == 9:
-        push(instruction[1])
+        push_reg(instruction[1])
 
     # opcode 10: POP
     elif opcode == 10:
         pop(instruction[1])
+
+    # opcode 11: CALL
+    elif opcode == 11:
+        call(instruction[1])
+
+    # opcode 12: POP
+    elif opcode == 12:
+        ret()
 
     pc += 1  # Move to next instruction
     print(registers)  # Print after each instructionn
