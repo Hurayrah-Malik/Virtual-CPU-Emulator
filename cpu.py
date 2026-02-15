@@ -190,6 +190,6 @@ while pc < len(program):
         pop(instruction[1])
 
     pc += 1  # Move to next instruction
-    print(registers)  # Print after each instruction
+    print(registers)  # Print after each instructionn
 
 #  end flag
